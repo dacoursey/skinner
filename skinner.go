@@ -16,6 +16,10 @@ type header struct {
 	points int
 }
 
+func (h *header) SetPoints(points int) {
+    h.points = points
+}
+
 func main(){
 
     headersPresent := []header{}
@@ -67,15 +71,15 @@ func main(){
         for k, v := range stdHeaders{
             fmt.Printf("%v:%v:%v\n", strings.ToLower(p.name),k,v)
             if strings.ToLower(p.name) == k {
-                fmt.Printf("***hit***\n")
-                p.points = v
+                fmt.Printf("***hit***: %v\n", v)
+                p.SetPoints(v)
             }
         }
     }
 
-    // for _, p := range headersPresent {
-    //     fmt.Println(p)
-    // }
+    for _, p := range headersPresent {
+        fmt.Println(p)
+    }
 }
 
 
