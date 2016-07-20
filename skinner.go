@@ -29,7 +29,7 @@ func main(){
     flag.Parse()
 
     if verbose {
-        fmt.Println("Beginning operations......")
+        fmt.Printf("\nBeginning operations......\n")
     }
 
     // This is our map of all point-valued standard HTTP headers.
@@ -66,20 +66,34 @@ func main(){
         return
     }
 
-    // Now we compare the retrieved headers with our standard list.
-    for _, p := range headersPresent {
+    // We compare the headers retrieved from the target to the standard
+    // header list to start scoring.
+    for i := range headersPresent {
         for k, v := range stdHeaders{
-            fmt.Printf("%v:%v:%v\n", strings.ToLower(p.name),k,v)
-            if strings.ToLower(p.name) == k {
-                fmt.Printf("***hit***: %v\n", v)
-                p.SetPoints(v)
+            if strings.ToLower(headersPresent[i].name) == k {
+                headersPresent[i].points = v
             }
         }
     }
 
+    // Let's print some pretty stuff.
+    fmt.Printf("\n\n")
+    fmt.Println("**************************************************")
+    fmt.Println("*")
+    fmt.Println("* Headers present")
+    fmt.Println("*")
+    fmt.Println("**************************************************")
+    fmt.Printf("\n\n")
+
     for _, p := range headersPresent {
         fmt.Println(p)
     }
+
+    // Let's print some more pretty stuff.
+    fmt.Printf("\n\n")
+    fmt.Println("**************************************************")
+    fmt.Println("*")
+    fmt.Println("**************************************************")
 }
 
 
@@ -103,27 +117,6 @@ func testTarget(url string, redir bool) (h []header, err error) {
     if response.StatusCode != http.StatusOK {
                 fmt.Printf("Server return non-200 status: %v\n", response.Status)
         }
-
-    // Let's print some pretty stuff.
-    fmt.Printf("\n\n")
-    fmt.Println("**************************************************")
-    fmt.Println("*")
-    fmt.Println("* Headers present")
-    fmt.Println("*")
-    fmt.Println("**************************************************")
-    fmt.Printf("\n\n")
-
-    // titles := []interface{}{"Header","Value",0}
-    // headerList := []interface{}(titles)
-
-    // header := []interface{}{"h","v",10}
-    // header2 := []interface{}{"x","y",5}
-    // headerList = append(header)
-    // headerList = append(header2)
-
-    // for v := range headerList {
-    //     fmt.Println(headerList[v])
-    // }
     
     headers := []header{}
 
@@ -134,12 +127,6 @@ func testTarget(url string, redir bool) (h []header, err error) {
         //fmt.Println(temp)
         headers = append(headers, temp)
     }
-
-    // Let's print some more pretty stuff.
-    fmt.Printf("\n\n")
-    fmt.Println("**************************************************")
-    fmt.Println("*")
-    fmt.Println("**************************************************")
 
     return headers, err
 }
