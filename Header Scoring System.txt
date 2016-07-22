@@ -1,0 +1,83 @@
+Header Scoring System
+
+
+Score Up
+
+Access-Control-Allow-Origin             2
+Cache-Control                           2
+Content-Security-Policy                 10
+Pragma                                  2
+Public-Key-Pins                         10
+Strict-Transport-Security               6
+TSV                                     2
+X-Content-Type-Options                  2
+X-Frame-Options                         4
+X-XSS-Protection                        2
+
+
+
+
+Score Down
+
+Via                                     -2
+Warning                                 -1
+WWW-Authenticate                        -4
+X-Content-Security-Policy               -5
+X-Powered-By                            -2
+X-UA-Compatible                         -2
+X-WebKit-CSP                            -5
+Anything not specifically defined here that may contain sensitive info will be -2
+
+
+
+Further Check
+
+Allow (check for reduced method set)                        0/2
+Set-Cookie (HttpOnly, Secure)                               0/2/4
+Upgrade (check for protocols)                               0/4
+Upgrade-Insecure-Requests (check if upgrading to https)     0/4
+Alt-Svc (check for mismatch)                                Info only
+
+
+
+No Score Chanage
+
+Accept-Patch
+Accept-Ranges
+Age
+Connection
+Content-Disposition
+Content-Encoding
+Content-Language
+Content-Length
+Content-Location
+Content-MD5
+Content-Range
+Content-Type
+Date
+ETag
+Expires
+Last-Modified
+Link
+Location
+P3P
+Proxy-Authenticate
+Refresh
+Retry-After
+Status
+Trailer
+Transfer-Encoding
+Vary
+X-Content-Duration
+X-Correlation-ID
+X-Request-ID
+
+
+
+
+
+
+
+
+
+
