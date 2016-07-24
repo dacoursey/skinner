@@ -23,7 +23,7 @@ func (h *header) SetPoints(points int) {
 func main(){
 
     // First we grab all of the command flags.
-    hostPtr := flag.String("t", "", "Target host.") // For now we only accept full URL's
+    hostPtr := flag.String("t", "https://qualys.com", "Target host.") // For now we only accept full URL's
     redirPtr := flag.Bool("r", true, "Follow redirects.") // Not really used yet.
     rawPtr := flag.Bool("a", false, "Print all raw headers.")
     flag.BoolVar(&verbose, "v", false, "Increase the number of status messages.")
@@ -98,8 +98,9 @@ func main(){
             if  strings.ToLower(headersPresent[i].name) == "strict-transport-security" {
                 headersPresent[i].points = 6
             } else {
-                x := len(headersNotPresent) + 1
-                headersNotPresent[x] = "strict-transport-security"
+                //x := len(headersNotPresent) + 1
+                //headersNotPresent[x] = "strict-transport-security"
+                headersNotPresent = append(headersNotPresent, "strict-transport-security")
             }
         }
     }
