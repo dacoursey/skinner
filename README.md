@@ -11,7 +11,7 @@ This was designed primarily to be used on networks that do not have access to th
 $skinner [-v|-a] -t http://www.yourtargeturl.biz
 
 
-- t	        Target host	            // For now we only accept full URL's
-- r	        Follow redirects        // Not really used yet.
-- a	        Print all raw headers
-- v	        Increase the number of status messages
+-t	        Target host	            // For now we only accept full URL's
+-r	        Follow redirects        // Not really used yet.
+-a	        Print all raw headers
+-v	        Increase the number of status messages
