@@ -4,17 +4,39 @@ Header Scoring System
 Score Up
 
 Access-Control-Allow-Origin             2
+    same domain
 Cache-Control                           2
-X-Content-Security-Policy               10
+    max-age=3600
+Content-Security-Policy                 10
+    default-src 'self'
 Pragma                                  2
+    no-cache
 Public-Key-Pins                         10
+    max-age=2592000; 
+    pin-sha256="E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g=";
+Set-Cookie (HttpOnly, Secure)           4
+    HttpOnly;
+    Secure;
 Strict-Transport-Security               6
+    max-age=16070400; 
+    includeSubDomains
 TSV
-X-Content-Security-Policy
+    "!" — under construction
+    "?" — dynamic
+    "G" — gateway to multiple parties
+    "N" — not tracking
+    "T" — tracking
+    "C" — tracking with consent
+    "P" — tracking only if consented
+    "D" — disregarding DNT
+    "U" — updated
 X-Content-Type-Options
+    nosniff
 X-Frame-Options
-X-WebKit-CSP
+    deny
 X-XSS-Protection
+    1; 
+    mode=block
 
 
 
@@ -23,16 +45,17 @@ Score Down
 Via
 Warning
 WWW-Authenticate
+X-Content-Security-Policy
 X-Powered-By
 X-UA-Compatible
+X-WebKit-CSP
 
 
 
-Further Check
+Further Processing
 
 Allow (check for reduced method set)
 Alt-Svc (check for mismatch)
-Set-Cookie (HttpOnly, Secure)
 Upgrade (check for protocols)
 Upgrade-Insecure-Requests (check if upgrading to https)
 

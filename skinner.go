@@ -16,14 +16,15 @@ type header struct {
 	points int
 }
 
-func (h *header) SetPoints(points int) {
-    h.points = points
-}
+// func (h *header) SetPoints(points int) {
+//     h.points = points
+// }
 
 func main(){
 
     // First we grab all of the command flags.
-    hostPtr := flag.String("t", "https://qualys.com", "Target host.") // For now we only accept full URL's
+    hostPtr := flag.String("t", "", "Target host.") // For now we only accept full URL's
+    //filePtr := flag.String("f", "", "File with list of targets - one URL per line.")
     redirPtr := flag.Bool("r", true, "Follow redirects.") // Not really used yet.
     rawPtr := flag.Bool("a", false, "Print all raw headers.")
     flag.BoolVar(&verbose, "v", false, "Increase the number of status messages.")
@@ -31,32 +32,10 @@ func main(){
 
     // Variables used for some reason.
     headersPresent := []header{}
+    headersUnknown := []header{}
     headersNotPresent := []string{}
     isHTTPS := false
     totalScore := 60
-
-    // This is our map of all point-valued standard HTTP headers.
-    // 40 good points.
-    // -17 bad points.
-    var stdHeaders = map[string]int {
-        "access-control-allow-origin": 2,
-        "cache-control": 2,
-        "content-security-policy": 10,
-        "pragma": 2,
-        "public-key-pins": 8,
-        "strict-transport-security": 6,
-        "tsv": 2,
-        "x-content-type-options": 2,
-        "x-frame-options": 4,
-        "x-xss-protection": 2,
-        "via": -2,
-        "warning": -1, 
-        "www-authenticate": -4,
-        "x-content-security-policy": -3,
-        "x-powered-by": -2,
-        "x-ua-compatible": -2,
-        "x-webkit-csp": -3,
-    }
 
     if verbose { fmt.Printf("\nBeginning operations......\n") }
 
@@ -82,13 +61,86 @@ func main(){
         return
     }
 
+    // This is our source of all point-valued standard HTTP headers.
     // We compare the headers retrieved from the target to the standard
     // header list to start scoring.
-    for i := range headersPresent {
-        for k, v := range stdHeaders{
-            if strings.ToLower(headersPresent[i].name) == k {
-                headersPresent[i].points = v
+    // 46 good points.
+    // -21 bad points.
+    for i :=  range headersPresent {
+        n := strings.ToLower(headersPresent[i].name)
+        switch {
+        case n == "access-control-allow-origin":
+            if headersPresent[i].value != "*" {
+                headersPresent[i].points = 2
             }
+        case n == "cache-control":
+            // This needs to be improved to account for variations
+            headersPresent[i].points = 2
+        case n == "content-security-policy":
+            // This needs to be improved to account for variations
+            headersPresent[i].points = 10
+        case n == "pragma":
+            if strings.ToLower(headersPresent[i].value) == "no-cache" {
+                headersPresent[i].points = 2
+            }
+        case n == "public-key-pins":
+            val := strings.ToLower(headersPresent[i].value)
+            sha := strings.Contains(val, "pin-sha256")
+            age := strings.Contains(val, "max-age")
+            sub := strings.Contains(val, "includesubdomains")
+            rep := strings.Contains(val, "report-uri")
+
+            if sha && age && sub && rep {
+                headersPresent[i].points = 8
+            } else if sha && age && sub && !rep {
+                headersPresent[i].points = 7
+            } else if sha && age && !sub && !rep {
+                headersPresent[i].points = 6
+            } else {
+                headersPresent[i].points = 0
+            }
+        case n == "tsv":
+            headersPresent[i].points = 2
+        case n == "x-content-type-options":
+            if strings.ToLower(headersPresent[i].value) == "nosniff" {
+                headersPresent[i].points = 2
+            }
+        case n == "x-frame-options":
+            val := strings.ToLower(headersPresent[i].value)
+            if val == "deny" {
+                headersPresent[i].points = 4
+            } else if val == "sameorigin" || strings.Contains(val, "allow-from") {
+                headersPresent[i].points = 2
+            }
+        case n == "x-xss-protection":
+            if strings.ToLower(headersPresent[i].value) == "1; mode=block" {
+                headersPresent[i].points = 2
+            }
+        case n == "set-cookie":
+            val := strings.ToLower(headersPresent[i].value)
+            if strings.Contains(val, "httponly") && strings.Contains(val, "secure") {
+                headersPresent[i].points = 6
+            } else if strings.Contains(val, "httponly") && !strings.Contains(val, "secure") {
+                headersPresent[i].points = 3
+            } else if strings.Contains(val, "secure") && !strings.Contains(val, "httponly") {
+                headersPresent[i].points = 3
+            } else {
+                headersPresent[i].points = -4
+            }
+        case n == "via":
+            headersPresent[i].points = -2
+        case n == "warning":
+            headersPresent[i].points = -1
+        case n == "www-authenticate":
+            headersPresent[i].points = -4
+        case n == "x-content-security-policy":
+            headersPresent[i].points = -3
+        case n == "x-powered-by":
+            headersPresent[i].points = -2
+        case n == "x-ua-compatible":
+            headersPresent[i].points = -2
+        case n == "x-webkit-csp":
+            headersPresent[i].points = -3
         }
     }
 
@@ -96,17 +148,28 @@ func main(){
     if isHTTPS {
         for i := range headersPresent {
             if  strings.ToLower(headersPresent[i].name) == "strict-transport-security" {
-                headersPresent[i].points = 6
+                val := strings.ToLower(headersPresent[i].value)
+                if strings.Contains(val, "max-age") && strings.Contains(val, "includesubdomains") {
+                    headersPresent[i].points = 6
+                } else if strings.Contains(val, "max-age") && !strings.Contains(val, "includesubdomains") {
+                    headersPresent[i].points = 5
+                } else if strings.Contains(val, "includesubdomains") && !strings.Contains(val, "max-age") {
+                    headersPresent[i].points = 1
+                } else {
+                    headersPresent[i].points = -4
+                }
             } else {
-                //x := len(headersNotPresent) + 1
-                //headersNotPresent[x] = "strict-transport-security"
                 headersNotPresent = append(headersNotPresent, "strict-transport-security")
             }
         }
     }
 
-    for i := range headersPresent {
-        totalScore += headersPresent[i].points
+    for p := range headersPresent {
+        if headersPresent[p].points != 0 {
+            totalScore += headersPresent[p].points
+        } else {
+            headersUnknown = append(headersUnknown, headersPresent[p])
+        }
     }
     
     // Let's print some pretty stuff.
@@ -123,12 +186,31 @@ func main(){
 
         fmt.Printf("\n")
         fmt.Println("**************************************************")
-        fmt.Println("* Headers present")
+        fmt.Println("* Scored Headers")
         fmt.Println("**************************************************")
         fmt.Printf("\n")
 
-        for _, p := range headersPresent {
-            fmt.Println(p)
+        // ToDo: Come back and clean this up with column alignment.
+        for i := range headersPresent {
+            if headersPresent[i].points != 0 {
+                h := headersPresent[i].name
+                v := headersPresent[i].value
+                p := headersPresent[i].points
+                fmt.Printf("Header: %v \t\t Value: %v \t\t Score: %v\n", h, v, p)
+            }
+        }
+
+        fmt.Printf("\n")
+        fmt.Println("**************************************************")
+        fmt.Println("* Unknown Headers")
+        fmt.Println("* Evaluate the following headers for information leakage.")
+        fmt.Println("**************************************************")
+        fmt.Printf("\n")
+
+        for i := range headersUnknown {
+            h := headersUnknown[i].name
+            v := headersUnknown[i].value
+            fmt.Printf("Header: %v \t\t Value: %v\n", h, v)
         }
     }
 
@@ -173,8 +255,8 @@ func testTarget(url string, redir bool) (h []header, err error) {
     if verbose { fmt.Printf("Target %v responded.\n", url)}
     
     if response.StatusCode != http.StatusOK {
-                fmt.Printf("Server return non-200 status: %v\n", response.Status)
-        }
+        fmt.Printf("Server return non-200 status: %v\n", response.Status)
+    }
     
     headers := []header{}
 
