@@ -4,7 +4,9 @@ import "flag"
 import "fmt"
 import "net/http"
 import "net/url"
+import "os"
 import "strings"
+import "text/tabwriter"
 import "time"
 
 // Global Vars
@@ -41,6 +43,7 @@ func main(){
 
     if *hostPtr == "" {
         fmt.Println("No target host was specified.")
+        flag.PrintDefaults()
         return
     }
 
@@ -68,22 +71,22 @@ func main(){
     // -21 bad points.
     for i :=  range headersPresent {
         n := strings.ToLower(headersPresent[i].name)
-        switch {
-        case n == "access-control-allow-origin":
+        switch n {
+        case "access-control-allow-origin":
             if headersPresent[i].value != "*" {
                 headersPresent[i].points = 2
             }
-        case n == "cache-control":
+        case "cache-control":
             // This needs to be improved to account for variations
             headersPresent[i].points = 2
-        case n == "content-security-policy":
+        case "content-security-policy":
             // This needs to be improved to account for variations
             headersPresent[i].points = 10
-        case n == "pragma":
+        case "pragma":
             if strings.ToLower(headersPresent[i].value) == "no-cache" {
                 headersPresent[i].points = 2
             }
-        case n == "public-key-pins":
+        case "public-key-pins":
             val := strings.ToLower(headersPresent[i].value)
             sha := strings.Contains(val, "pin-sha256")
             age := strings.Contains(val, "max-age")
@@ -99,24 +102,24 @@ func main(){
             } else {
                 headersPresent[i].points = 0
             }
-        case n == "tsv":
+        case "tsv":
             headersPresent[i].points = 2
-        case n == "x-content-type-options":
+        case "x-content-type-options":
             if strings.ToLower(headersPresent[i].value) == "nosniff" {
                 headersPresent[i].points = 2
             }
-        case n == "x-frame-options":
+        case "x-frame-options":
             val := strings.ToLower(headersPresent[i].value)
             if val == "deny" {
                 headersPresent[i].points = 4
             } else if val == "sameorigin" || strings.Contains(val, "allow-from") {
                 headersPresent[i].points = 2
             }
-        case n == "x-xss-protection":
+        case "x-xss-protection":
             if strings.ToLower(headersPresent[i].value) == "1; mode=block" {
                 headersPresent[i].points = 2
             }
-        case n == "set-cookie":
+        case "set-cookie":
             val := strings.ToLower(headersPresent[i].value)
             if strings.Contains(val, "httponly") && strings.Contains(val, "secure") {
                 headersPresent[i].points = 6
@@ -127,19 +130,19 @@ func main(){
             } else {
                 headersPresent[i].points = -4
             }
-        case n == "via":
+        case "via":
             headersPresent[i].points = -2
-        case n == "warning":
+        case "warning":
             headersPresent[i].points = -1
-        case n == "www-authenticate":
+        case "www-authenticate":
             headersPresent[i].points = -4
-        case n == "x-content-security-policy":
+        case "x-content-security-policy":
             headersPresent[i].points = -3
-        case n == "x-powered-by":
+        case "x-powered-by":
             headersPresent[i].points = -2
-        case n == "x-ua-compatible":
+        case "x-ua-compatible":
             headersPresent[i].points = -2
-        case n == "x-webkit-csp":
+        case "x-webkit-csp":
             headersPresent[i].points = -3
         }
     }
@@ -183,6 +186,7 @@ func main(){
 
     // Print the raw list of headers.
     if *rawPtr {
+        w := new(tabwriter.Writer)
 
         fmt.Printf("\n")
         fmt.Println("**************************************************")
@@ -196,7 +200,11 @@ func main(){
                 h := headersPresent[i].name
                 v := headersPresent[i].value
                 p := headersPresent[i].points
-                fmt.Printf("Header: %v \t\t Value: %v \t\t Score: %v\n", h, v, p)
+
+                // Print out in tab separated columns (hopefully)
+                w.Init(os.Stdout, 40, 8, 0, '\t', 0)
+                fmt.Fprintf(w, "Header: %v\tValue: %v\tPoints: %v\t\n", h, v, p)
+                w.Flush()
             }
         }
 
@@ -210,7 +218,11 @@ func main(){
         for i := range headersUnknown {
             h := headersUnknown[i].name
             v := headersUnknown[i].value
-            fmt.Printf("Header: %v \t\t Value: %v\n", h, v)
+            //fmt.Printf("Header: %v \t\t Value: %v\n", h, v)
+            // Print out in tab separated columns (hopefully)
+            w.Init(os.Stdout, 40, 8, 0, '\t', 0)
+            fmt.Fprintf(w, "Header: %v\tValue: %v\t\n", h, v)
+            w.Flush()
         }
     }
 
