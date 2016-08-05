@@ -8,6 +8,7 @@ import "os"
 import "strings"
 import "text/tabwriter"
 import "time"
+import "skinner/print/text"
 
 // Global Vars
 var verbose = false
@@ -25,7 +26,7 @@ type header struct {
 func main(){
 
     // First we grab all of the command flags.
-    hostPtr := flag.String("t", "", "Target host.") // For now we only accept full URL's
+    hostPtr := flag.String("t", "http://google.com", "Target host.") // For now we only accept full URL's
     //filePtr := flag.String("f", "", "File with list of targets - one URL per line.")
     redirPtr := flag.Bool("r", true, "Follow redirects.") // Not really used yet.
     rawPtr := flag.Bool("a", false, "Print all raw headers.")
@@ -182,6 +183,8 @@ func main(){
     fmt.Println("**************************************************")
     fmt.Printf("\n")
 
+    
+
     fmt.Printf("Total Score: %v\n", totalScore)
 
     // Print the raw list of headers.
@@ -279,4 +282,9 @@ func testTarget(url string, redir bool) (h []header, err error) {
     }
 
     return headers, err
+}
+
+func printResult(results []header, score int) (success bool, err error) {
+
+    return success, err
 }
