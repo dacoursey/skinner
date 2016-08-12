@@ -227,8 +227,3 @@ func testTarget(url string, redir bool) (h []header.Header, err error) {
 
     return headers, err
 }
-
-func printResult(results []header.Header, score int) (success bool, err error) {
-
-    return success, err
-}
