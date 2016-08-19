@@ -15,6 +15,22 @@ var verbose = false
 
 func main(){
 
+    // Big stupid list of Information Leakage headers
+    headersInfoLeak := []string{
+        "server",
+        "x-powered-by",
+        "x-aspnet-version",
+        "x-aspnetmvc-version",
+        "x-lift-version",
+        "x-dynatrace-js-agent",
+        "microsoftsharepointteamservices",
+        "x-sharepointhealthscore",
+        "spiislatency",
+        "sprequestduration",
+        "sprequestguid",
+        "x-ms-invokeapp",
+    }
+
     // First we grab all of the command flags.
     hostPtr := flag.String("t", "", "Target host.") // For now we only accept full URL's
     //filePtr := flag.String("f", "", "File with list of targets - one URL per line.")
@@ -135,6 +151,10 @@ func main(){
             headersPresent[i].Points = -2
         case "x-webkit-csp":
             headersPresent[i].Points = -3
+        default:
+            for l := range headersInfoLeak {
+                if n == strings.ToLower(headersInfoLeak[l]) {headersPresent[i].Points = -1}
+            }
         }
     }
 
@@ -226,4 +246,11 @@ func testTarget(url string, redir bool) (h []header.Header, err error) {
     }
 
     return headers, err
+}
+
+func checkLeakage(h string) bool  {
+    // Assume false and hope for the best...
+    present := false
+
+    return present
 }
