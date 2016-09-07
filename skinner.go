@@ -1,6 +1,5 @@
 package main
 
-
 import "flag"
 import "fmt"
 import "io/ioutil"
@@ -17,8 +16,8 @@ var verbose = false
 func main() {
 
 	// First we grab all of the command flags.
-	hostPtr := flag.String("t", "", "Target host.") // For now we only accept full URL's
-	filePtr := flag.String("f", "hosts.txt", "File with list of targets - one URL per line.")
+	hostPtr := flag.String("t", "http://www.qualys.com", "Target host.") // For now we only accept full URL's
+	filePtr := flag.String("f", "", "File with list of targets - one URL per line.")
 	redirPtr := flag.Bool("r", true, "Follow redirects.") // Not really used yet.
 	rawPtr := flag.Bool("a", false, "Print all raw headers.")
 	flag.BoolVar(&verbose, "v", false, "Increase the number of status messages.")
