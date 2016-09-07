@@ -1,19 +1,15 @@
 package main
 
-import (
-	"flag"
-	"fmt"
-	"io/ioutil"
-	"net/url"
-	"time"
 
-	"github.com/dacoursey/skinner/print/text"
-)
+import "flag"
+import "fmt"
+import "io/ioutil"
 import "net/http"
-
+import "net/url"
 import "strings"
-
+import "time"
 import "github.com/dacoursey/skinner/header"
+import "github.com/dacoursey/skinner/print/text"
 
 // Global Vars
 var verbose = false
