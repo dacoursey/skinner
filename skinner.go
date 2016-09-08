@@ -43,19 +43,19 @@ func main() {
 		fmt.Println("Please specify only one target host source.")
 		flag.PrintDefaults()
 		return
-	} else if *hostPtr == "" && *filePtr != "" {
+	} else if *filePtr != "" {
 		// Need some error handling on this but it's being weird.
 		hostList = loadHostsFile(*filePtr)
 
 	} else {
-		hostList = append(hostList, *filePtr)
+		hostList = append(hostList, *hostPtr)
 	}
 
 	// Cycle through our list of hosts and start scanning.
 	for i := range hostList {
 
 		if verbose {
-			fmt.Printf("\nValidating target: %v \n", i)
+			fmt.Printf("\nValidating target: %v \n", i+1)
 		}
 
 		// Make sure the target string is usable.
@@ -109,7 +109,7 @@ func main() {
 		if *rawPtr {
 			text.PrintAll(totalScore, headersPresent, headersUnknown)
 		} else {
-			text.PrintScore(totalScore)
+			text.PrintScore(totalScore, target.Host)
 		}
 	}
 
