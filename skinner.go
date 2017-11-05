@@ -9,6 +9,7 @@ import "strings"
 import "time"
 import "github.com/dacoursey/skinner/header"
 import "github.com/dacoursey/skinner/print/text"
+import "github.com/goware/urlx"
 
 // Global Vars
 var verbose = false
@@ -60,6 +61,10 @@ func main() {
 
 		// Make sure the target string is usable.
 		target, err := validateTarget(hostList[i])
+		// Drop the normalized target URL back into the host list.
+		if err == nil {
+			hostList[i] = target.String()
+		}
 
 		if target.Scheme == "https" {
 			isHTTPS = true
@@ -130,16 +135,21 @@ func loadHostsFile(path string) (hosts []string) {
 // any operations on some jacked up mess.
 func validateTarget(target string) (u *url.URL, err error) {
 
-	cleanTarget, err := url.Parse(target)
+	fmt.Println(target)
+	workTarget, err := urlx.Parse(target)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	if cleanTarget.Scheme == "" || cleanTarget.Host == "" {
+	cleanString, err := urlx.Normalize(workTarget)
+	if err != nil {
 		fmt.Println("Not a valid URL...  exiting.")
 		return
 	}
+
+	// If this throws an error, something went horribly wrong.
+	cleanTarget, _ := urlx.Parse(cleanString)
 
 	return cleanTarget, err
 }
@@ -199,6 +209,9 @@ func checkHeaders(headersPresent []header.Header) (h []header.Header, err error)
 		case "content-security-policy":
 			// This needs to be improved to account for variations
 			headersPresent[i].Points = 10
+		case "content-security-policy-report-only":
+			// This needs to be improved to account for variations
+			headersPresent[i].Points = 8
 		case "pragma":
 			if strings.ToLower(headersPresent[i].Value) == "no-cache" {
 				headersPresent[i].Points = 2
